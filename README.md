@@ -17,7 +17,7 @@ Fill in the form with:
 
 1. **Code**: cloner
 
-2. **Description**:Clone Forms, Objects, Events, PHP etc.
+2. **Description**: Clone Forms, Objects, Events, PHP etc.
 
 3. **Run**: Hidden
 
@@ -47,8 +47,6 @@ nuSetProperty('cloner_f1','5f53ade2954fe21'); // The form to clone. Replace 5f53
 nuRunPHPHidden('cloner', 0);
 ```
 
-Result: The form (cloner_f1) has been cloned.
-
 ### 3. Clone the objects of a form and insert them in another existing form
 
 ```php
@@ -77,7 +75,7 @@ nuSetProperty('cloner_f2','5f53ade2954fe22'); // Destination form: Replace  5f53
 nuRunPHPHidden('cloner', 0);
 ```
 
-### #5: Clone the current form without objects 
+### 6: Clone the current form without objects 
 
 ```php
 nuSetProperty('cloner_without_objects', true)
