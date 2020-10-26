@@ -1,40 +1,28 @@
-// ## nuBuilder Cloner 1.01
+// ## nuBuilder Cloner 1.02
 
 function hashCookieSet($h) {
-   
     return !(preg_match('/\#(.*)\#/', $h) || trim($h) == "");
-    
 }
 
 function idWithoutEvent($id) {
-    
     return substr($id, 0, -3);
-    
 }
 
 function eventFromId($id) {
-    
     return substr($id, -3);
-    
 }
 
 function lookupValue($arr, $key) {
-    
     return array_column($arr, $key) [0];
-    
 }
 
 function addToArray(array & $arr, $key, $value) {
-    
      array_push($arr, array($key => $value));
-     
 }
 
 function getTabList() {
-    
     $t = "#cloner_tabs#";
     return !hashCookieSet($t) || strlen($t) < 3 ? "" : implode(',', json_decode($t));
-    
 }
 
 function getFormSource(&$f1) {
@@ -139,7 +127,9 @@ function cloneFormPHP($f1, $f2) {
 
 function cloneTabs($f1, $f2) {
 
-    $s = "SELECT * FROM zzzzsys_tab WHERE syt_zzzzsys_form_id  = ?";
+    $s = "SELECT * FROM zzzzsys_tab AS tab1 WHERE syt_zzzzsys_form_id  = ?";
+    $s .= whereTabs();
+
     $t = nuRunQuery($s, [$f1]);
 
     while ($row = db_fetch_array($t)) {
@@ -169,6 +159,11 @@ function cloneBrowse($f1, $f2) {
 
 }
 
+function whereTabs() {
+    $tabs = getTabList();
+    return $tabs != '' ? " AND tab1.`syt_order` DIV 10 IN ($tabs) " : "";
+}
+
 function getTabIds($f1, $f2) {
 
     $s = "    
@@ -184,11 +179,7 @@ function getTabIds($f1, $f2) {
             tab1.`syt_zzzzsys_form_id` = ? AND tab2.`syt_zzzzsys_form_id` = ? 
     ";
     
-    $tabs = getTabList();
-    if ($tabs != '') $s .= " AND tab1.`syt_order` DIV 10 IN ($tabs) ";
-    
-    nuDebug($s, $f1, $f2);
-
+    $s .= whereTabs();
     $t = nuRunQuery($s, [$f1, $f2]);
 
     $tab_ids = [];
@@ -215,11 +206,9 @@ function cloneFormObjects($f1, $f2, array & $objectIds) {
         $row['zzzzsys_object_id'] = $newid;
         $tab_id = lookupValue($tab_ids, $row['sob_all_zzzzsys_tab_id']);
 
-        if ($tab_id == "") return;
-
         $row['sob_all_zzzzsys_tab_id'] = $tab_id;
 
-        insertRecord('zzzzsys_object', $row);
+        if ($tab_id != "")  insertRecord('zzzzsys_object', $row);
 
     }
 
@@ -305,9 +294,8 @@ function cloneObjectsSelectClause($f1, $selectIds) {
 
         $row['ssc_zzzzsys_select_id'] = lookupValue($selectIds, $row['ssc_zzzzsys_select_id']);
         $row['zzzzsys_select_clause_id'] = nuID();
-        if ($row['ssc_zzzzsys_select_id'] == "") return;
 
-        insertRecord('zzzzsys_select_clause', $row);
+        if ($row['ssc_zzzzsys_select_id'] != "")  insertRecord('zzzzsys_select_clause', $row);
 
     }
 
@@ -330,10 +318,11 @@ function cloneEvents($f1, $objectIds) {
 }
 
 function getOpenForm($f2) {
-    $ft = getFormType($f2);
     
+    $ft = getFormType($f2);
     $r = $ft == 'browseedit' ? "" : "-1";
     return "nuForm('$f2', '$r', '', '', '2');";
+    
 }
 
 if (getFormSource($f1) == false) {
