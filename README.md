@@ -1,5 +1,11 @@
 # nuBuilder4-cloner
-Clone nuBuilder Forms, Objects, Events, PHP etc.
+
+## Features:
+
+- Clone Forms with all PHP events, select, select clause, browse, tabs
+- Clone Objects with their events etc.
+- Include only certain form tabs
+- Copy objects to a new or existing form
 
 ## Use cases:
 
