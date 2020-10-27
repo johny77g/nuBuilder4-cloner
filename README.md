@@ -78,9 +78,16 @@ nuRunPHPHidden('cloner', 0);
 ### 6: Clone the current form without objects 
 
 ```php
-nuSetProperty('cloner_without_objects', true)
+nuSetProperty('cloner_without_objects', "1");
 nuSetProperty('cloner_tabs','');
 nuSetProperty('cloner_f1','');
 nuSetProperty('cloner_f2','');
+nuRunPHPHidden('cloner', 0);
+```
+
+### 7: Do not show the new form after cloning
+
+```php
+nuSetProperty('cloner_open_new_form', "0");
 nuRunPHPHidden('cloner', 0);
 ```
