@@ -1,4 +1,4 @@
-// ## nuBuilder Cloner 1.02
+// ## nuBuilder Cloner 1.03
 
 function hashCookieSet($h) {
     return !(preg_match('/\#(.*)\#/', $h) || trim($h) == "");
@@ -50,7 +50,7 @@ function getFormDestination(&$f2) {
 
 function formExists($f) {
     
-    $s = "SELECT * FROM `zzzzsys_form` WHERE zzzzsys_form_id  = ? LIMIT 1";
+    $s = "SELECT * FROM zzzzsys_form WHERE zzzzsys_form_id  = ? LIMIT 1";
     $t = nuRunQuery($s, [$f]);
     return db_num_rows($t) == 1;
     
@@ -63,7 +63,7 @@ function createInsertStatement($form, $columns, $row) {
     }
     , $row);
 
-    return "INSERT INTO `$form` (`" . implode('`, `', $columns) . "`) VALUES ( " . implode(" , ", $params) . " ) ";
+    return "INSERT INTO $form (" . implode(', ', $columns) . ") VALUES ( " . implode(" , ", $params) . " ) ";
 
 }
 
@@ -78,7 +78,7 @@ function insertRecord($form, $row) {
 
 function getFormType($f) {
 
-    $s = "SELECT sfo_type FROM `zzzzsys_form` where zzzzsys_form_id  = ? LIMIT 1";
+    $s = "SELECT sfo_type FROM zzzzsys_form WHERE zzzzsys_form_id  = ? LIMIT 1";
     $t = nuRunQuery($s, [$f]);
     $r = db_fetch_row($t);
 
@@ -88,7 +88,7 @@ function getFormType($f) {
 
 function cloneForm($f1) {
 
-    $s = "SELECT * FROM `zzzzsys_form` WHERE zzzzsys_form_id  = ? LIMIT 1";
+    $s = "SELECT * FROM zzzzsys_form WHERE zzzzsys_form_id  = ? LIMIT 1";
     $t = nuRunQuery($s, [$f1]);
     
     $row = db_fetch_array($t);
@@ -105,10 +105,13 @@ function cloneForm($f1) {
 function cloneFormPHP($f1, $f2) {
 
     $s = "
-        SELECT zzzzsys_php.*
-        FROM zzzzsys_php
-        LEFT JOIN zzzzsys_form ON zzzzsys_form_id = LEFT(zzzzsys_php_id , LENGTH(zzzzsys_php_id) - 3)
-        WHERE zzzzsys_form_id = ?
+        SELECT
+            zzzzsys_php.*
+        FROM
+            zzzzsys_php
+        LEFT JOIN zzzzsys_form ON zzzzsys_form_id = LEFT(zzzzsys_php_id, LENGTH(zzzzsys_php_id) - 3)
+        WHERE
+            zzzzsys_form_id = ?
 	";
 
     $t = nuRunQuery($s, [$f1]);
@@ -125,7 +128,7 @@ function cloneFormPHP($f1, $f2) {
 
 }
 
-function cloneTabs($f1, $f2) {
+function cloneFormTabs($f1, $f2) {
 
     $s = "SELECT * FROM zzzzsys_tab AS tab1 WHERE syt_zzzzsys_form_id  = ?";
     $s .= whereTabs();
@@ -143,9 +146,9 @@ function cloneTabs($f1, $f2) {
 
 }
 
-function cloneBrowse($f1, $f2) {
+function cloneFormBrowse($f1, $f2) {
 
-    $s = "SELECT * FROM `zzzzsys_browse` WHERE sbr_zzzzsys_form_id  = ?";
+    $s = "SELECT * FROM zzzzsys_browse WHERE sbr_zzzzsys_form_id  = ?";
     $t = nuRunQuery($s, [$f1]);
 
     while ($row = db_fetch_array($t)) {
@@ -161,22 +164,22 @@ function cloneBrowse($f1, $f2) {
 
 function whereTabs() {
     $tabs = getTabList();
-    return $tabs != '' ? " AND tab1.`syt_order` DIV 10 IN ($tabs) " : "";
+    return $tabs != '' ? " AND tab1.syt_order DIV 10 IN ($tabs) " : "";
 }
 
 function getTabIds($f1, $f2) {
 
     $s = "    
         SELECT
-            tab1.`zzzzsys_tab_id` AS tab1,
-            tab2.`zzzzsys_tab_id` AS tab2
+            tab1.zzzzsys_tab_id AS tab1,
+            tab2.zzzzsys_tab_id AS tab2
         FROM
-            `zzzzsys_tab` AS tab1
-        LEFT JOIN `zzzzsys_tab` AS tab2
+            zzzzsys_tab AS tab1
+        LEFT JOIN zzzzsys_tab AS tab2
         ON
-            tab1.syt_order = tab2.`syt_order`
+            tab1.syt_order = tab2.syt_order
         WHERE
-            tab1.`syt_zzzzsys_form_id` = ? AND tab2.`syt_zzzzsys_form_id` = ? 
+            tab1.syt_zzzzsys_form_id = ? AND tab2.syt_zzzzsys_form_id = ? 
     ";
     
     $s .= whereTabs();
@@ -220,10 +223,10 @@ function cloneObjectsPHP($f1, $objectIds) {
         SELECT
            zzzzsys_php.* 
         FROM
-           `zzzzsys_php` 
+           zzzzsys_php 
            LEFT JOIN
               zzzzsys_object 
-              ON zzzzsys_object_id = LEFT(`zzzzsys_php_id`, LENGTH(`zzzzsys_php_id`) - 3) 
+              ON zzzzsys_object_id = LEFT(zzzzsys_php_id, LENGTH(zzzzsys_php_id) - 3) 
         WHERE
            sob_all_zzzzsys_form_id = ?
 	";
@@ -242,16 +245,72 @@ function cloneObjectsPHP($f1, $objectIds) {
 
 }
 
+
+function cloneFormSelect($f1, $f2, array & $formSelectIds) {
+
+    $s = "
+        SELECT
+           zzzzsys_select.* 
+        FROM
+           zzzzsys_select 
+        WHERE LEFT(zzzzsys_select_id, LENGTH(zzzzsys_select_id) - 3)  = ?
+	";
+
+    $t = nuRunQuery($s, [$f1]);
+
+    while ($row = db_fetch_array($t)) {
+
+        $event = eventFromId($row['zzzzsys_select_id']);
+        $newid = $f2. $event;
+        addToArray($formSelectIds,  $row['zzzzsys_select_id'], $newid);
+        $row['zzzzsys_select_id'] = $newid;
+
+        insertRecord('zzzzsys_select', $row);
+
+    }
+
+}
+
+
+function cloneFormSelectClause($f1, $formSelectIds) {
+
+    $s = "
+        SELECT
+           zzzzsys_select_clause.* 
+        FROM
+           zzzzsys_select_clause 
+           LEFT JOIN
+              zzzzsys_select 
+              ON zzzzsys_select_id = ssc_zzzzsys_select_id 
+           LEFT JOIN zzzzsys_form ON LEFT(zzzzsys_select_id, LENGTH(zzzzsys_select_id) - 3) = zzzzsys_form_id
+           WHERE zzzzsys_form_id  = ? 
+	";
+
+    $t = nuRunQuery($s, [$f1]);
+
+    while ($row = db_fetch_array($t)) {
+
+        $row['ssc_zzzzsys_select_id'] = lookupValue($formSelectIds, $row['ssc_zzzzsys_select_id']);
+        $row['zzzzsys_select_clause_id'] = nuID();
+
+        if ($row['ssc_zzzzsys_select_id'] != "")  insertRecord('zzzzsys_select_clause', $row);
+
+    }
+
+}
+
+
+
 function cloneObjectsSelect($f1, $objectIds, array & $selectIds) {
 
     $s = "
         SELECT
            zzzzsys_select.* 
         FROM
-           `zzzzsys_select` 
+           zzzzsys_select 
            LEFT JOIN
               zzzzsys_object 
-              ON zzzzsys_object_id = LEFT(`zzzzsys_select_id`, LENGTH(`zzzzsys_select_id`) - 3) 
+              ON zzzzsys_object_id = LEFT(zzzzsys_select_id, LENGTH(zzzzsys_select_id) - 3) 
         WHERE
            sob_all_zzzzsys_form_id = ?
 	";
@@ -277,13 +336,13 @@ function cloneObjectsSelectClause($f1, $selectIds) {
         SELECT
            zzzzsys_select_clause.* 
         FROM
-           `zzzzsys_select_clause` 
+           zzzzsys_select_clause 
            LEFT JOIN
               zzzzsys_select 
               ON zzzzsys_select_id = ssc_zzzzsys_select_id 
            LEFT JOIN
               zzzzsys_object 
-              ON zzzzsys_object_id = LEFT(`zzzzsys_select_id`, LENGTH(`zzzzsys_select_id`) - 3) 
+              ON zzzzsys_object_id = LEFT(zzzzsys_select_id, LENGTH(zzzzsys_select_id) - 3) 
         WHERE
            sob_all_zzzzsys_form_id = ?
 	";
@@ -301,7 +360,7 @@ function cloneObjectsSelectClause($f1, $selectIds) {
 
 }
 
-function cloneEvents($f1, $objectIds) {
+function cloneObjectsEvents($f1, $objectIds) {
 
     $s = "SELECT * FROM zzzzsys_event WHERE sev_zzzzsys_object_id IN (SELECT zzzzsys_object_id FROM zzzzsys_object WHERE sob_all_zzzzsys_form_id = ?)";
     $t = nuRunQuery($s, [$f1]);
@@ -337,13 +396,19 @@ if (getFormDestination($f2) == false) {
 
 // If no destination form passed, clone the source form
 if ($f2 == "") {
+
+    $formSelectIds = [];
+    
     $f2 = cloneForm($f1);
-    cloneTabs($f1, $f2);
-    cloneBrowse($f1, $f2);
+    cloneFormTabs($f1, $f2);
+    cloneFormSelect($f1, $f2, $formSelectIds);
+    cloneFormSelectClause($f1, $formSelectIds);
+    cloneFormBrowse($f1, $f2);
     cloneFormPHP($f1, $f2);
+    
 }
 
-if (hashCookieSet('#cloner_without_objects#')) return;
+if ("#cloner_without_objects#" == '1') return;
 
 // Clone form objects, php events, js events, select, select clause
 $objectIds = [];
@@ -353,7 +418,9 @@ cloneFormObjects($f1, $f2, $objectIds);
 cloneObjectsPHP($f1, $objectIds);
 cloneObjectsSelect($f1, $objectIds, $selectIds);
 cloneObjectsSelectClause($f1, $selectIds);
-cloneEvents($f1, $objectIds);
+cloneObjectsEvents($f1, $objectIds);
+
+if ("#cloner_open_new_form#" == '0') return;
 
 // Show the new form
 nuJavascriptCallback(getOpenForm($f2));
