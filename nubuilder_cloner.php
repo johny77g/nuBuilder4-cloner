@@ -1,4 +1,4 @@
-// ## nuBuilder Cloner 1.05
+// ## nuBuilder Cloner 1.06
 
 function hashCookieSet($h) {
     return !(preg_match('/\#(.*)\#/', $h) || trim($h) == "");
@@ -21,8 +21,10 @@ function addToArray(array & $arr, $key, $value) {
 }
 
 function getTabList() {
+    
     $t = "#cloner_tabs#";
     return !hashCookieSet($t) || strlen($t) < 3 ? "" : implode(',', json_decode($t));
+    
 }
 
 function getFormSource(&$f1) {
@@ -38,11 +40,11 @@ function getFormSource(&$f1) {
 }
 
 function dbQuote($s){
-
+    
 	global $nuDB;
-
+	
 	return $nuDB->quote($s);
-	    
+	
 }	
 	
 function getFormDestination(&$f2) {
@@ -84,7 +86,7 @@ function dumpFormInfo($f) {
     
     $fi = getFormInfo($f);
     echo "-- nuBuilder cloner SQL Dump "."<br>";
-    echo "-- Version 1.05 "."<br>";
+    echo "-- Version 1.06 "."<br>";
     echo "-- Generation Time: ".date("F d, Y h:i:s A")."<br><br>";
     echo "-- Form Description: ". $fi["description"]."<br>";
     echo "-- Form Code: ". $fi["code"]."<br>";
@@ -191,19 +193,25 @@ function cloneFormPHP($f1, $f2) {
 
 function cloneFormTabs($f1, $f2) {
 
+    $tab_ids = [];
     $s = "SELECT * FROM zzzzsys_tab AS tab1 WHERE syt_zzzzsys_form_id  = ?";
     $s .= whereTabs();
-
+    
     $t = nuRunQuery($s, [$f1]);
 
     while ($row = db_fetch_array($t)) {
 
-        $row['zzzzsys_tab_id'] = nuID();
+        $newid = nuID();
+        addToArray($tab_ids, $row['zzzzsys_tab_id'], $newid);
+    
+        $row['zzzzsys_tab_id'] = $newid;
         $row['syt_zzzzsys_form_id'] = $f2;
 
         insertRecord('zzzzsys_tab', $row, $first);
 
     }
+    
+     return $tab_ids;
 
 }
 
@@ -255,9 +263,7 @@ function getTabIds($f1, $f2) {
 
 }
 
-function cloneFormObjects($f1, $f2, array & $objectIds) {
-
-    $tab_ids = getTabIds($f1, $f2);
+function cloneFormObjects($f1, $f2, array & $objectIds, $tab_ids) {
 
     $s = "SELECT * FROM zzzzsys_object WHERE sob_all_zzzzsys_form_id = ?";
     $t = nuRunQuery($s, [$f1]);
@@ -269,7 +275,6 @@ function cloneFormObjects($f1, $f2, array & $objectIds) {
         addToArray($objectIds,  $row['zzzzsys_object_id'], $newid);
         $row['zzzzsys_object_id'] = $newid;
         $tab_id = lookupValue($tab_ids, $row['sob_all_zzzzsys_tab_id']);
-
         $row['sob_all_zzzzsys_tab_id'] = $tab_id;
 
         if ($tab_id != "")  insertRecord('zzzzsys_object', $row, $first);
@@ -467,13 +472,14 @@ if ($f2 == "") {
     $formSelectIds = [];
     
     $f2 = cloneForm($f1);
-    cloneFormTabs($f1, $f2);
+    $tab_ids = cloneFormTabs($f1, $f2, $tab_ids2);
     cloneFormSelect($f1, $f2, $formSelectIds);
     cloneFormSelectClause($f1, $formSelectIds);
     cloneFormBrowse($f1, $f2);
     cloneFormPHP($f1, $f2);
-    
+
 }
+
 
 if ("#cloner_without_objects#" == '1') return;
 
@@ -481,7 +487,7 @@ if ("#cloner_without_objects#" == '1') return;
 $objectIds = [];
 $selectIds = [];
 
-cloneFormObjects($f1, $f2, $objectIds);
+cloneFormObjects($f1, $f2, $objectIds, $tab_ids);
 cloneObjectsPHP($f1, $objectIds);
 cloneObjectsSelect($f1, $objectIds, $selectIds);
 cloneObjectsSelectClause($f1, $selectIds);
