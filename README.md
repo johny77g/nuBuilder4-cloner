@@ -101,7 +101,7 @@ nuRunPHPHidden('cloner', 0);
 ### 8: Dump the SQL statements instead of executing them
 
 ```php
-nuSetProperty('cloner_dump_statements','0');
+nuSetProperty('cloner_dump_statements','1');
 nuSetProperty('cloner_without_objects', "0");
 nuSetProperty('cloner_tabs','');
 nuSetProperty('cloner_f1','');
