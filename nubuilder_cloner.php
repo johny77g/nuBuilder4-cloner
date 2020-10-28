@@ -1,4 +1,4 @@
-// ## nuBuilder Cloner 1.04
+// ## nuBuilder Cloner 1.05
 
 function hashCookieSet($h) {
     return !(preg_match('/\#(.*)\#/', $h) || trim($h) == "");
@@ -45,8 +45,6 @@ function dbQuote($s){
 	    
 }	
 	
-
-
 function getFormDestination(&$f2) {
 
     $f2 = "#cloner_f2#";
@@ -67,6 +65,34 @@ function formExists($f) {
     
 }
 
+function getFormInfo($f) {
+    
+    $s = "SELECT * FROM zzzzsys_form WHERE zzzzsys_form_id  = ? LIMIT 1";
+    $t = nuRunQuery($s, [$f]);
+    $row = db_fetch_object($t);
+
+    return array(
+        "code" => $row->sfo_code,
+        "description" => $row->sfo_description,
+        "table" => $row->sfo_table,
+        "type" => $row->sfo_type
+    );    
+    
+}
+
+function dumpFormInfo($f) { 
+    
+    $fi = getFormInfo($f);
+    echo "-- nuBuilder cloner SQL Dump "."<br>";
+    echo "-- Version 1.05 "."<br>";
+    echo "-- Generation Time: ".date("F d, Y h:i:s A")."<br><br>";
+    echo "-- Form Description: ". $fi["description"]."<br>";
+    echo "-- Form Code: ". $fi["code"]."<br>";
+    echo "-- Form Table: ". $fi["table"]."<br>";
+    echo "-- Form Type: ". $fi["type"]."<br><vr>";
+    
+}
+
 function createInsertStatement($form, $columns, $row) {
 
     $params = array_map(function ($val) {
@@ -78,19 +104,32 @@ function createInsertStatement($form, $columns, $row) {
     
 }
 
-function insertRecord($form, $row) {
+function dumpStatement($table, $row, &$first) {
 
-    if ("#cloner_dump_statements#" == '1') {
-        $values = join(', ', array_map(function ($value) {
-            return $value === null ? 'NULL' : dbQuote($value);
-        }
-        , $row));
+    $values = join(', ', array_map(function ($value) {
+        return $value === null ? 'NULL' : dbQuote($value);
+    }
+    , $row));
 
-        echo "INSERT INTO $form (" . implode(', ', array_keys($row)) . ") VALUES ( " . $values . " ); ";
-        echo "<br><br>";
+    if (!isset($first)) {
+        echo "<br>--<br>";
+        echo "-- " . $table . "<br>";
+        echo "--<br><br>";
+        $first = false;
+    }
+
+    echo "INSERT INTO $table (" . implode(', ', array_keys($row)) . ") VALUES ( " . $values . " ); " . "<br><br>";
+
+}
+
+function insertRecord($table, $row, &$first) {
+
+    if ("#cloner_dump#" == '1') {
+        dumpStatement($table, $row, $first);
         $t = "";
-    } else {
-        $i = createInsertStatement($form, array_keys($row) , $row);
+    }
+    else {
+        $i = createInsertStatement($table, array_keys($row) , $row);
         $t = nuRunQuery($i, array_values($row) , true);
     }
 
@@ -118,7 +157,7 @@ function cloneForm($f1) {
     $row['zzzzsys_form_id'] = $newid;
     $row['sfo_code'] .= "_clone";
 
-    insertRecord('zzzzsys_form', $row);
+    insertRecord('zzzzsys_form', $row, $first);
 
     return $newid;
 
@@ -144,7 +183,7 @@ function cloneFormPHP($f1, $f2) {
         $row['zzzzsys_php_id'] = $f2 . $event;
         $row['sph_code'] = $f2 . $event;
 
-        insertRecord('zzzzsys_php', $row);
+        insertRecord('zzzzsys_php', $row, $first);
 
     }
 
@@ -162,7 +201,7 @@ function cloneFormTabs($f1, $f2) {
         $row['zzzzsys_tab_id'] = nuID();
         $row['syt_zzzzsys_form_id'] = $f2;
 
-        insertRecord('zzzzsys_tab', $row);
+        insertRecord('zzzzsys_tab', $row, $first);
 
     }
 
@@ -178,7 +217,7 @@ function cloneFormBrowse($f1, $f2) {
         $row['zzzzsys_browse_id'] = nuID();
         $row['sbr_zzzzsys_form_id'] = $f2;
 
-        insertRecord('zzzzsys_browse', $row);
+        insertRecord('zzzzsys_browse', $row, $first);
 
     }
 
@@ -233,7 +272,7 @@ function cloneFormObjects($f1, $f2, array & $objectIds) {
 
         $row['sob_all_zzzzsys_tab_id'] = $tab_id;
 
-        if ($tab_id != "")  insertRecord('zzzzsys_object', $row);
+        if ($tab_id != "")  insertRecord('zzzzsys_object', $row, $first);
 
     }
 
@@ -261,7 +300,7 @@ function cloneObjectsPHP($f1, $objectIds) {
         $row['zzzzsys_php_id'] = lookupValue($objectIds, idWithoutEvent($row['zzzzsys_php_id'])) . $event;
         $row['sph_code'] = lookupValue($objectIds, idWithoutEvent($row['sph_code'])) . $event;
 
-        insertRecord('zzzzsys_php', $row);
+        insertRecord('zzzzsys_php', $row, $first);
 
     }
 
@@ -287,7 +326,7 @@ function cloneFormSelect($f1, $f2, array & $formSelectIds) {
         addToArray($formSelectIds,  $row['zzzzsys_select_id'], $newid);
         $row['zzzzsys_select_id'] = $newid;
 
-        insertRecord('zzzzsys_select', $row);
+        insertRecord('zzzzsys_select', $row, $first);
 
     }
 
@@ -315,7 +354,7 @@ function cloneFormSelectClause($f1, $formSelectIds) {
         $row['ssc_zzzzsys_select_id'] = lookupValue($formSelectIds, $row['ssc_zzzzsys_select_id']);
         $row['zzzzsys_select_clause_id'] = nuID();
 
-        if ($row['ssc_zzzzsys_select_id'] != "")  insertRecord('zzzzsys_select_clause', $row);
+        if ($row['ssc_zzzzsys_select_id'] != "")  insertRecord('zzzzsys_select_clause', $row, $first);
 
     }
 
@@ -346,7 +385,7 @@ function cloneObjectsSelect($f1, $objectIds, array & $selectIds) {
         addToArray($selectIds,  $row['zzzzsys_select_id'], $newid);
         $row['zzzzsys_select_id'] = $newid;
 
-        insertRecord('zzzzsys_select', $row);
+        insertRecord('zzzzsys_select', $row, $first);
 
     }
 
@@ -376,7 +415,7 @@ function cloneObjectsSelectClause($f1, $selectIds) {
         $row['ssc_zzzzsys_select_id'] = lookupValue($selectIds, $row['ssc_zzzzsys_select_id']);
         $row['zzzzsys_select_clause_id'] = nuID();
 
-        if ($row['ssc_zzzzsys_select_id'] != "")  insertRecord('zzzzsys_select_clause', $row);
+        if ($row['ssc_zzzzsys_select_id'] != "")  insertRecord('zzzzsys_select_clause', $row, $first);
 
     }
 
@@ -392,7 +431,7 @@ function cloneObjectsEvents($f1, $objectIds) {
         $row['zzzzsys_event_id'] = nuID();
         $row['sev_zzzzsys_object_id'] = lookupValue($objectIds, $row['sev_zzzzsys_object_id']);
 
-        insertRecord('zzzzsys_event', $row);
+        insertRecord('zzzzsys_event', $row, $first);
 
     }
 
@@ -414,6 +453,12 @@ if (getFormSource($f1) == false) {
 if (getFormDestination($f2) == false) {
     nuJavascriptCallback("nuMessage(['The form $f2 (cloner_f2) does not exist!'])");
     return;
+}
+
+$dump = "#cloner_dump#";
+
+if ($dump == '1') {
+     dumpFormInfo($f1);
 }
 
 // If no destination form passed, clone the source form
@@ -442,7 +487,7 @@ cloneObjectsSelect($f1, $objectIds, $selectIds);
 cloneObjectsSelectClause($f1, $selectIds);
 cloneObjectsEvents($f1, $objectIds);
 
-if ("#cloner_open_new_form#" == '0' || "#cloner_dump_statements#" == '1') return;
+if ("#cloner_open_new_form#" == '0' || $dump == '1') return;
 
 // Show the new form
 nuJavascriptCallback(getOpenForm($f2));
