@@ -1,4 +1,4 @@
-// ## nuBuilder Cloner 1.03
+// ## nuBuilder Cloner 1.04
 
 function hashCookieSet($h) {
     return !(preg_match('/\#(.*)\#/', $h) || trim($h) == "");
@@ -34,7 +34,18 @@ function getFormSource(&$f1) {
     }
     
     return formExists($f1);    
+    
 }
+
+function dbQuote($s){
+
+	global $nuDB;
+
+	return $nuDB->quote($s);
+	    
+}	
+	
+
 
 function getFormDestination(&$f2) {
 
@@ -64,13 +75,24 @@ function createInsertStatement($form, $columns, $row) {
     , $row);
 
     return "INSERT INTO $form (" . implode(', ', $columns) . ") VALUES ( " . implode(" , ", $params) . " ) ";
-
+    
 }
 
 function insertRecord($form, $row) {
 
-    $i = createInsertStatement($form, array_keys($row) , $row);
-    $t = nuRunQuery($i, array_values($row) , true);
+    if ("#cloner_dump_statements#" == '1') {
+        $values = join(', ', array_map(function ($value) {
+            return $value === null ? 'NULL' : dbQuote($value);
+        }
+        , $row));
+
+        echo "INSERT INTO $form (" . implode(', ', array_keys($row)) . ") VALUES ( " . $values . " ); ";
+        echo "<br><br>";
+        $t = "";
+    } else {
+        $i = createInsertStatement($form, array_keys($row) , $row);
+        $t = nuRunQuery($i, array_values($row) , true);
+    }
 
     return $t;
 
@@ -420,7 +442,7 @@ cloneObjectsSelect($f1, $objectIds, $selectIds);
 cloneObjectsSelectClause($f1, $selectIds);
 cloneObjectsEvents($f1, $objectIds);
 
-if ("#cloner_open_new_form#" == '0') return;
+if ("#cloner_open_new_form#" == '0' || "#cloner_dump_statements#" == '1') return;
 
 // Show the new form
 nuJavascriptCallback(getOpenForm($f2));
