@@ -1,4 +1,4 @@
-// ## nuBuilder Cloner 1.06
+// ## nuBuilder Cloner 1.07
 
 function hashCookieSet($h) {
     return !(preg_match('/\#(.*)\#/', $h) || trim($h) == "");
@@ -86,7 +86,7 @@ function dumpFormInfo($f) {
     
     $fi = getFormInfo($f);
     echo "-- nuBuilder cloner SQL Dump "."<br>";
-    echo "-- Version 1.06 "."<br>";
+    echo "-- Version 1.07 "."<br>";
     echo "-- Generation Time: ".date("F d, Y h:i:s A")."<br><br>";
     echo "-- Form Description: ". $fi["description"]."<br>";
     echo "-- Form Code: ". $fi["code"]."<br>";
@@ -128,14 +128,11 @@ function insertRecord($table, $row, &$first) {
 
     if ("#cloner_dump#" == '1') {
         dumpStatement($table, $row, $first);
-        $t = "";
     }
     else {
         $i = createInsertStatement($table, array_keys($row) , $row);
-        $t = nuRunQuery($i, array_values($row) , true);
+        nuRunQuery($i, array_values($row) , true);
     }
-
-    return $t;
 
 }
 
@@ -450,50 +447,57 @@ function getOpenForm($f2) {
     
 }
 
-if (getFormSource($f1) == false) {
-    nuJavascriptCallback("nuMessage(['The form $f1 (cloner_f1) does not exist!'])");
-    return;
-}
-
-if (getFormDestination($f2) == false) {
-    nuJavascriptCallback("nuMessage(['The form $f2 (cloner_f2) does not exist!'])");
-    return;
-}
-
-$dump = "#cloner_dump#";
-
-if ($dump == '1') {
-     dumpFormInfo($f1);
-}
-
-// If no destination form passed, clone the source form
-if ($f2 == "") {
-
-    $formSelectIds = [];
+function startCloner() {
     
-    $f2 = cloneForm($f1);
-    $tab_ids = cloneFormTabs($f1, $f2);
-    cloneFormSelect($f1, $f2, $formSelectIds);
-    cloneFormSelectClause($f1, $formSelectIds);
-    cloneFormBrowse($f1, $f2);
-    cloneFormPHP($f1, $f2);
+    $dump = "#cloner_dump#";
+    $withoutObjects = "#cloner_without_objects#";
+    $openNewForm = "#cloner_open_new_form#";
+    
+    if (getFormSource($f1) == false) {
+        nuJavascriptCallback("nuMessage(['The form $f1 (cloner_f1) does not exist!'])");
+        return;
+    }
+    
+    if (getFormDestination($f2) == false) {
+        nuJavascriptCallback("nuMessage(['The form $f2 (cloner_f2) does not exist!'])");
+        return;
+    }
+
+    if ($dump == '1') {
+         dumpFormInfo($f1);
+    }
+    
+    // If no destination form passed, clone the source form
+    if ($f2 == "") {
+    
+        $formSelectIds = [];
+        
+        $f2 = cloneForm($f1);
+        $tab_ids = cloneFormTabs($f1, $f2, $tab_ids);
+    
+        cloneFormSelect($f1, $f2, $formSelectIds);
+        cloneFormSelectClause($f1, $formSelectIds);
+        cloneFormBrowse($f1, $f2);
+        cloneFormPHP($f1, $f2);
+    
+    }
+    
+    if ($withoutObjects == '1') return;
+    
+    $objectIds = [];
+    $selectIds = [];
+    
+    cloneFormObjects($f1, $f2, $objectIds, $tab_ids);
+    cloneObjectsPHP($f1, $objectIds);
+    cloneObjectsSelect($f1, $objectIds, $selectIds);
+    cloneObjectsSelectClause($f1, $selectIds);
+    cloneObjectsEvents($f1, $objectIds);
+    
+    if ($openNewForm == '0' || $dump == '1') return;
+    
+    // Show the new form
+    nuJavascriptCallback(getOpenForm($f2));
 
 }
 
-
-if ("#cloner_without_objects#" == '1') return;
-
-// Clone form objects, php events, js events, select, select clause
-$objectIds = [];
-$selectIds = [];
-
-cloneFormObjects($f1, $f2, $objectIds, $tab_ids);
-cloneObjectsPHP($f1, $objectIds);
-cloneObjectsSelect($f1, $objectIds, $selectIds);
-cloneObjectsSelectClause($f1, $selectIds);
-cloneObjectsEvents($f1, $objectIds);
-
-if ("#cloner_open_new_form#" == '0' || $dump == '1') return;
-
-// Show the new form
-nuJavascriptCallback(getOpenForm($f2));
+startCloner();
