@@ -6,6 +6,7 @@
 - Clone Objects with their events etc.
 - Include only certain form tabs
 - Copy objects to a new or existing form
+- Dump the sql statements instead of executing them
 
 ## Use cases:
 
@@ -101,7 +102,7 @@ nuRunPHPHidden('cloner', 0);
 ### 8: Dump the SQL statements instead of executing them
 
 ```php
-nuSetProperty('cloner_dump_statements','1');
+nuSetProperty('cloner_dump','1');
 nuSetProperty('cloner_without_objects', "0");
 nuSetProperty('cloner_tabs','');
 nuSetProperty('cloner_f1','');
