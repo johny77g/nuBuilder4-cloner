@@ -472,7 +472,7 @@ if ($f2 == "") {
     $formSelectIds = [];
     
     $f2 = cloneForm($f1);
-    $tab_ids = cloneFormTabs($f1, $f2, $tab_ids2);
+    $tab_ids = cloneFormTabs($f1, $f2);
     cloneFormSelect($f1, $f2, $formSelectIds);
     cloneFormSelectClause($f1, $formSelectIds);
     cloneFormBrowse($f1, $f2);
