@@ -6,7 +6,7 @@
 - Clone form objects 
 - Include only certain form tabs
 - Copy objects to a new or existing form
-- Dump the SQL statements instead of executing them
+- Dump the SQL INSERT statements to the browser window instead of executing them
 
 ## Use cases:
 
@@ -16,7 +16,6 @@
 -	You want to copy a bunch of controls from one form to another
 - You want other users than globeadmin (e.g. supervisors/managers) to manage the nubuilder users. Clone nuBuilder's user form, customize it and give access to any users.
 
-
 ## Setting up the "cloner"
 
 Create a [Procedure](https://wiki.nubuilder.net/nubuilderforte/index.php/Procedures): *Tab Builders -> Procedure -> Add* 
@@ -24,15 +23,11 @@ Create a [Procedure](https://wiki.nubuilder.net/nubuilderforte/index.php/Procedu
 Fill in the form with:
 
 1. **Code**: cloner
-
 2. **Description**: Clone Forms, Objects, Events, PHP etc.
-
 3. **Run**: Hidden
-
 4. **PHP**: Paste the code from the file [nubuilder_cloner.php](https://github.com/smalos/nuBuilder4-cloner/blob/main/nubuilder_cloner.php)
 
-Hit Save
-
+Click "Save"
 
 ## Cloner settings:
 
@@ -47,7 +42,7 @@ nuRunPHPHidden() is used to set Hash Cookies and pass arguments from JavaScript 
 - **cloner_without_objects**
   - (Optional) If set to "1", clone only the form without its objects.
 - **cloner_dump**
-  - (Optional) If set to "1", dump the SQL statements in the browser window instead of executing them
+  - (Optional) If set to "1", dump the SQL INSERT statements to the browser window instead of executing them
 - **cloner_open_new_form**
   - (Optional) If set to "1", the new/destination form is not shown after the cloning
 
