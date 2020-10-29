@@ -1,22 +1,23 @@
-# nuBuilder4-cloner
+# nuBuilder 4 "cloner"
 
 ## Features:
 
-- Clone Forms with all PHP events, select, select clause, browse, tabs
-- Clone Objects with their events etc.
+- Clone/duplicate a form.
+- Clone form objects 
 - Include only certain form tabs
 - Copy objects to a new or existing form
-- Dump the sql statements instead of executing them
+- Dump the SQL statements instead of executing them
 
 ## Use cases:
 
 -	Clone a form to test changes before they are integrated into the productive system 
+- Export a form from one database and import it into another one
 -	You created a form and want to duplicate it because you need a similar form (Instead of recreating it from scratch)
 -	You want to copy a bunch of controls from one form to another
 - You want other users than globeadmin (e.g. supervisors/managers) to manage the nubuilder users. Clone nuBuilder's user form, customize it and give access to any users.
 
 
-## Setting up the 'cloner'
+## Setting up the "cloner"
 
 Create a [Procedure](https://wiki.nubuilder.net/nubuilderforte/index.php/Procedures): *Tab Builders -> Procedure -> Add* 
 
@@ -33,13 +34,31 @@ Fill in the form with:
 Hit Save
 
 
+## Cloner settings:
+
+nuRunPHPHidden() is used to set Hash Cookies and pass arguments from JavaScript to the cloner script.
+
+- **cloner_f1**
+  - (Optional) The form ID of the source form to clone. The current form is used if empty/not set.
+- **cloner_f2**
+  - (Optional) The form ID of the destination form. A new form is created if empty/not set.
+- **cloner_tabs**
+  - (Optional) Specify the Tabs to include. By default, all tabs are included. Usage: See example 5.
+- **cloner_without_objects**
+  - (Optional) If set to "1", clone only the form without its objects.
+- **cloner_dump**
+  - (Optional) If set to "1", dump the SQL statements in the browser window instead of executing them
+- **cloner_open_new_form**
+  - (Optional) If set to "1", the new/destination form is not shown after the cloning
+
+
 ## Usage Examples:
 
 To test/run the examples, use the Developer Console (F12).
 
 ### 1. Clone the current Form:
 
--> Open any form first. 
+-> Open any form first. Then run this JavaScript:
 
 ```php
 nuRunPHPHidden('cloner', 0);
@@ -57,8 +76,8 @@ nuRunPHPHidden('cloner', 0);
 ### 3. Clone the objects of a form and insert them in another existing form
 
 ```php
-nuSetProperty('cloner_f1','5f53ade2954fe21'); // Source form: Replace  5f53ade2954fe21 with any existing form id
-nuSetProperty('cloner_f2','5f53ade2954fe22'); // Destination form: Replace  5f53ade2954fe22 with any existing form id
+nuSetProperty('cloner_f1','5f53ade2954fe21'); // Source form: Replace 5f53ade2954fe21 with any existing form id
+nuSetProperty('cloner_f2','5f53ade2954fe22'); // Destination form: Replace 5f53ade2954fe22 with any existing form id
 nuRunPHPHidden('cloner', 0);
 ```
 
@@ -82,7 +101,7 @@ nuSetProperty('cloner_f2','5f53ade2954fe22'); // Destination form: Replace  5f53
 nuRunPHPHidden('cloner', 0);
 ```
 
-### 6: Clone the current form without objects 
+### 6: Clone the current form without its objects 
 
 ```php
 nuSetProperty('cloner_without_objects', "1");
