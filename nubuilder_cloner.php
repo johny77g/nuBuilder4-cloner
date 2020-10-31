@@ -1,4 +1,5 @@
-// ## nuBuilder Cloner 1.07
+// ## nuBuilder Cloner 1.08
+// https://github.com/smalos/nuBuilder4-cloner
 
 function hashCookieSet($h) {
     return !(preg_match('/\#(.*)\#/', $h) || trim($h) == "");
@@ -18,6 +19,10 @@ function lookupValue($arr, $key) {
 
 function addToArray(array & $arr, $key, $value) {
      array_push($arr, array($key => $value));
+}
+
+function getID($id) {
+    return "#cloner_new_ids#" == '1' ? nuID() : $id;
 }
 
 function getTabList() {
@@ -42,7 +47,6 @@ function getFormSource(&$f1) {
 function dbQuote($s){
     
 	global $nuDB;
-	
 	return $nuDB->quote($s);
 	
 }	
@@ -59,25 +63,27 @@ function getFormDestination(&$f2) {
     
 }
 
+function formSQL() {
+    return "SELECT * FROM zzzzsys_form WHERE zzzzsys_form_id  = ? LIMIT 1";
+}
+
 function formExists($f) {
     
-    $s = "SELECT * FROM zzzzsys_form WHERE zzzzsys_form_id  = ? LIMIT 1";
-    $t = nuRunQuery($s, [$f]);
+    $t = nuRunQuery(formSQL(), [$f]);
     return db_num_rows($t) == 1;
     
 }
 
 function getFormInfo($f) {
     
-    $s = "SELECT * FROM zzzzsys_form WHERE zzzzsys_form_id  = ? LIMIT 1";
-    $t = nuRunQuery($s, [$f]);
+    $t = nuRunQuery(formSQL(), [$f]);
     $row = db_fetch_object($t);
 
     return array(
         "code" => $row->sfo_code,
         "description" => $row->sfo_description,
-        "table" => $row->sfo_table,
-        "type" => $row->sfo_type
+        "type" => $row->sfo_type,
+        "table" => $row->sfo_table
     );    
     
 }
@@ -85,28 +91,33 @@ function getFormInfo($f) {
 function dumpFormInfo($f) { 
     
     $fi = getFormInfo($f);
+    echo "<b>";
     echo "-- nuBuilder cloner SQL Dump "."<br>";
-    echo "-- Version 1.07 "."<br>";
+    echo "-- Version 1.08 "."<br>";
     echo "-- Generation Time: ".date("F d, Y h:i:s A")."<br><br>";
     echo "-- Form Description: ". $fi["description"]."<br>";
     echo "-- Form Code: ". $fi["code"]."<br>";
     echo "-- Form Table: ". $fi["table"]."<br>";
-    echo "-- Form Type: ". $fi["type"]."<br><vr>";
+    echo "-- Form Type: ". $fi["type"]."<br><br>";
+    
+    $notes = "#cloner_notes#";
+    echo hashCookieSet($notes) ? "-- Notes: ".$notes."<br>"."<br>" : "";
+    echo "</b>";
     
 }
 
-function createInsertStatement($form, $columns, $row) {
+function createInsertStatement($table, $columns, $row) {
 
     $params = array_map(function ($val) {
         return "?";
     }
     , $row);
 
-    return "INSERT INTO $form (" . implode(', ', $columns) . ") VALUES ( " . implode(" , ", $params) . " ) ";
+    return "INSERT INTO $table (" . implode(', ', $columns) . ") VALUES ( " . implode(" , ", $params) . " ) ";
     
 }
 
-function dumpStatement($table, $row, &$first) {
+function dumpInsertStatement($table, $row, &$first) {
 
     $values = join(', ', array_map(function ($value) {
         return $value === null ? 'NULL' : dbQuote($value);
@@ -115,7 +126,7 @@ function dumpStatement($table, $row, &$first) {
 
     if (!isset($first)) {
         echo "<br>--<br>";
-        echo "-- " . $table . "<br>";
+        echo "-- <b>" . $table . "</b><br>";
         echo "--<br><br>";
         $first = false;
     }
@@ -127,7 +138,7 @@ function dumpStatement($table, $row, &$first) {
 function insertRecord($table, $row, &$first) {
 
     if ("#cloner_dump#" == '1') {
-        dumpStatement($table, $row, $first);
+            dumpInsertStatement($table, $row, $first);
     }
     else {
         $i = createInsertStatement($table, array_keys($row) , $row);
@@ -138,21 +149,19 @@ function insertRecord($table, $row, &$first) {
 
 function getFormType($f) {
 
-    $s = "SELECT sfo_type FROM zzzzsys_form WHERE zzzzsys_form_id  = ? LIMIT 1";
-    $t = nuRunQuery($s, [$f]);
-    $r = db_fetch_row($t);
+    $t = nuRunQuery(formSQL(), [$f]);
+    $row = db_fetch_array($t);
 
-    return $r[0];
+    return $row['sfo_type'];
 
 }
 
 function cloneForm($f1) {
 
-    $s = "SELECT * FROM zzzzsys_form WHERE zzzzsys_form_id  = ? LIMIT 1";
-    $t = nuRunQuery($s, [$f1]);
-    
+    $t = nuRunQuery(formSQL(), [$f1]);
     $row = db_fetch_array($t);
-    $newid = nuID();
+    
+    $newid = getID($row['zzzzsys_form_id']);
     $row['zzzzsys_form_id'] = $newid;
     $row['sfo_code'] .= "_clone";
 
@@ -190,7 +199,7 @@ function cloneFormPHP($f1, $f2) {
 
 function cloneFormTabs($f1, $f2) {
 
-    $tab_ids = [];
+    $tabIds = [];
     $s = "SELECT * FROM zzzzsys_tab AS tab1 WHERE syt_zzzzsys_form_id  = ?";
     $s .= whereTabs();
     
@@ -198,9 +207,9 @@ function cloneFormTabs($f1, $f2) {
 
     while ($row = db_fetch_array($t)) {
 
-        $newid = nuID();
-        addToArray($tab_ids, $row['zzzzsys_tab_id'], $newid);
-    
+        $newid = getID($row['zzzzsys_tab_id']);
+        
+        addToArray($tabIds, $row['zzzzsys_tab_id'], $newid);
         $row['zzzzsys_tab_id'] = $newid;
         $row['syt_zzzzsys_form_id'] = $f2;
 
@@ -208,7 +217,7 @@ function cloneFormTabs($f1, $f2) {
 
     }
     
-     return $tab_ids;
+     return $tabIds;
 
 }
 
@@ -219,7 +228,8 @@ function cloneFormBrowse($f1, $f2) {
 
     while ($row = db_fetch_array($t)) {
 
-        $row['zzzzsys_browse_id'] = nuID();
+        $newid = getID($row['zzzzsys_browse_id']);
+        $row['zzzzsys_browse_id'] = $newid;
         $row['sbr_zzzzsys_form_id'] = $f2;
 
         insertRecord('zzzzsys_browse', $row, $first);
@@ -251,16 +261,16 @@ function getTabIds($f1, $f2) {
     $s .= whereTabs();
     $t = nuRunQuery($s, [$f1, $f2]);
 
-    $tab_ids = [];
+    $tabIds = [];
     while ($r = db_fetch_object($t)) {
-        addToArray($tab_ids, $r->tab1, $r->tab2);
+        addToArray($tabIds, $r->tab1, $r->tab2);
     }
 
-    return $tab_ids;
+    return $tabIds;
 
 }
 
-function cloneFormObjects($f1, $f2, array & $objectIds, $tab_ids) {
+function cloneFormObjects($f1, $f2, array & $objectIds, $tabIds) {
 
     $s = "SELECT * FROM zzzzsys_object WHERE sob_all_zzzzsys_form_id = ?";
     $t = nuRunQuery($s, [$f1]);
@@ -268,10 +278,11 @@ function cloneFormObjects($f1, $f2, array & $objectIds, $tab_ids) {
     while ($row = db_fetch_array($t)) {
 
         $row['sob_all_zzzzsys_form_id'] = $f2;
-        $newid = nuID();
+        $newid = getID($row['zzzzsys_object_id']);
+        
         addToArray($objectIds,  $row['zzzzsys_object_id'], $newid);
         $row['zzzzsys_object_id'] = $newid;
-        $tab_id = lookupValue($tab_ids, $row['sob_all_zzzzsys_tab_id']);
+        $tab_id = lookupValue($tabIds, $row['sob_all_zzzzsys_tab_id']);
         $row['sob_all_zzzzsys_tab_id'] = $tab_id;
 
         if ($tab_id != "")  insertRecord('zzzzsys_object', $row, $first);
@@ -308,7 +319,6 @@ function cloneObjectsPHP($f1, $objectIds) {
 
 }
 
-
 function cloneFormSelect($f1, $f2, array & $formSelectIds) {
 
     $s = "
@@ -334,7 +344,6 @@ function cloneFormSelect($f1, $f2, array & $formSelectIds) {
 
 }
 
-
 function cloneFormSelectClause($f1, $formSelectIds) {
 
     $s = "
@@ -354,15 +363,12 @@ function cloneFormSelectClause($f1, $formSelectIds) {
     while ($row = db_fetch_array($t)) {
 
         $row['ssc_zzzzsys_select_id'] = lookupValue($formSelectIds, $row['ssc_zzzzsys_select_id']);
-        $row['zzzzsys_select_clause_id'] = nuID();
-
+        $row['zzzzsys_select_clause_id'] = getID($row['zzzzsys_select_clause_id']);
         if ($row['ssc_zzzzsys_select_id'] != "")  insertRecord('zzzzsys_select_clause', $row, $first);
 
     }
 
 }
-
-
 
 function cloneObjectsSelect($f1, $objectIds, array & $selectIds) {
 
@@ -415,7 +421,7 @@ function cloneObjectsSelectClause($f1, $selectIds) {
     while ($row = db_fetch_array($t)) {
 
         $row['ssc_zzzzsys_select_id'] = lookupValue($selectIds, $row['ssc_zzzzsys_select_id']);
-        $row['zzzzsys_select_clause_id'] = nuID();
+        $row['zzzzsys_select_clause_id'] = getID($row['zzzzsys_select_clause_id']);
 
         if ($row['ssc_zzzzsys_select_id'] != "")  insertRecord('zzzzsys_select_clause', $row, $first);
 
@@ -425,12 +431,26 @@ function cloneObjectsSelectClause($f1, $selectIds) {
 
 function cloneObjectsEvents($f1, $objectIds) {
 
-    $s = "SELECT * FROM zzzzsys_event WHERE sev_zzzzsys_object_id IN (SELECT zzzzsys_object_id FROM zzzzsys_object WHERE sob_all_zzzzsys_form_id = ?)";
+    $s = "
+        SELECT
+            *
+        FROM
+            zzzzsys_event
+        WHERE
+            sev_zzzzsys_object_id IN (
+            SELECT
+                zzzzsys_object_id
+            FROM
+                zzzzsys_object
+            WHERE
+                sob_all_zzzzsys_form_id = ?
+        )
+    ";
     $t = nuRunQuery($s, [$f1]);
 
     while ($row = db_fetch_array($t)) {
 
-        $row['zzzzsys_event_id'] = nuID();
+        $row['zzzzsys_event_id'] = getID($row['zzzzsys_event_id']);
         $row['sev_zzzzsys_object_id'] = lookupValue($objectIds, $row['sev_zzzzsys_object_id']);
 
         insertRecord('zzzzsys_event', $row, $first);
@@ -447,6 +467,104 @@ function getOpenForm($f2) {
     
 }
 
+function clearHashCookies() {
+    
+    return;
+    "
+        function clearHashCookies() {
+            nuSetProperty('cloner_f1','');
+            nuSetProperty('cloner_f2','');
+            nuSetProperty('cloner_tabs','');
+            nuSetProperty('cloner_without_objects', '0');
+            nuSetProperty('cloner_dump','0');
+            nuSetProperty('cloner_new_ids','');
+            nuSetProperty('cloner_open_new_form','1');
+        }
+        
+        clearHashCookies();
+    ";
+
+}
+
+function getSelectValues($formId, $selectId) {
+
+    $sql = "
+        SELECT
+            sob_select_sql
+        FROM
+            `zzzzsys_object`
+        WHERE
+            sob_all_zzzzsys_form_id = ? AND sob_all_id = ?
+    ";
+
+    $t = nuRunQuery($sql, [$formId, $selectId]);
+
+    $a = [];
+    if (db_num_rows($t) == 1) {
+
+        $r = db_fetch_row($t);
+        if ($r != false) {
+            $disS = nuReplaceHashVariables($r[0]);
+            $t = nuRunQuery($disS);
+
+            while ($row = db_fetch_row($t)) {
+                $a[] = $row;
+            }
+  
+            return json_encode($a);
+        }
+
+    }
+
+    return $a;
+
+}
+
+function populateSelectObject($formId, $selectId) {
+ 
+    $j = getSelectValues($formId, $selectId);
+    
+    return "
+    	function populateSelectObject() {
+    		var p = $j;
+    
+    		$('#$selectId').empty();
+    		$('#$selectId').append('<option value=\"\"></option>');
+    
+    		if (p != '') {
+    		    var s = nuIsSaved();
+    		    debugger;
+    			for (var i = 0; i < p.length; i++) {
+    				$('#$selectId').append('<option value=\"' + p[i][0] + '\">' + p[i][1] + '</option>');
+    			}
+    			if (s) { nuHasNotBeenEdited(); }
+    		}
+    	}
+    
+    	populateSelectObject();
+    ";
+    
+}
+
+function refreshSelectObject() {
+    
+    $selectId = '#cloner_refresh_selectId#';
+    $formId = '#cloner_refresh_selectFormId#';
+    
+    if (hashCookieSet($selectId)) {
+        
+        if (! hashCookieSet($formId)) {
+            $formId = '#form_id#';
+        }
+        
+        nuJavascriptCallback(populateSelectObject($formId, $selectId));
+        return true;
+    }
+    
+    return false;
+    
+}
+
 function startCloner() {
     
     $dump = "#cloner_dump#";
@@ -454,12 +572,12 @@ function startCloner() {
     $openNewForm = "#cloner_open_new_form#";
     
     if (getFormSource($f1) == false) {
-        nuJavascriptCallback("nuMessage(['The form $f1 (cloner_f1) does not exist!'])");
+        nuJavascriptCallback("nuMessage(['The form $f1 (cloner_f1) does not exist!']);".clearHashCookies());
         return;
     }
     
     if (getFormDestination($f2) == false) {
-        nuJavascriptCallback("nuMessage(['The form $f2 (cloner_f2) does not exist!'])");
+        nuJavascriptCallback("nuMessage(['The form $f2 (cloner_f2) does not exist!'])".clearHashCookies());
         return;
     }
 
@@ -473,7 +591,7 @@ function startCloner() {
         $formSelectIds = [];
         
         $f2 = cloneForm($f1);
-        $tab_ids = cloneFormTabs($f1, $f2, $tab_ids);
+        $tabIds = cloneFormTabs($f1, $f2);
     
         cloneFormSelect($f1, $f2, $formSelectIds);
         cloneFormSelectClause($f1, $formSelectIds);
@@ -496,8 +614,10 @@ function startCloner() {
     if ($openNewForm == '0' || $dump == '1') return;
     
     // Show the new form
-    nuJavascriptCallback(getOpenForm($f2));
+    nuJavascriptCallback(getOpenForm($f2).clearHashCookies());
 
 }
+
+if (refreshSelectObject() == true) return;
 
 startCloner();
