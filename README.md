@@ -45,6 +45,8 @@ nuRunPHPHidden() is used to set Hash Cookies and pass arguments from JavaScript 
   - (Optional) If set to "1", dump the SQL INSERT statements to the browser window instead of executing them
 - **cloner_open_new_form**
   - (Optional) If set to "1", the new/destination form is not shown after the cloning
+- **cloner_new_ids**
+  - (Optional) If set to "0", no new IDs (primary keys) are generated. This option is only to be used if cloner_dump is set to 1.
 
 
 ## Usage Examples:
@@ -119,6 +121,16 @@ nuRunPHPHidden('cloner', 0);
 nuSetProperty('cloner_dump','1');
 nuSetProperty('cloner_without_objects', "0");
 nuSetProperty('cloner_tabs','');
+nuSetProperty('cloner_f1','');
+nuSetProperty('cloner_f2','');
+nuRunPHP('cloner', '',1);
+```
+
+### 8: Do not generate new IDs.
+
+```php
+nuSetProperty('cloner_dump','1');
+nuSetProperty('cloner_new_ids', "0");
 nuSetProperty('cloner_f1','');
 nuSetProperty('cloner_f2','');
 nuRunPHP('cloner', '',1);
