@@ -565,19 +565,29 @@ function refreshSelectObject() {
     
 }
 
+function showError($msg) {
+    nuJavascriptCallback("nuMessage(['<h2>Error</h2><br>".$msg."']);".clearHashCookies());
+}
+
 function startCloner() {
     
     $dump = "#cloner_dump#";
     $withoutObjects = "#cloner_without_objects#";
     $openNewForm = "#cloner_open_new_form#";
+    $newIds = "#cloner_new_ids#";
+
+    if ($newIds == '0' && $dump != '1') {
+        showError('Set dump mode to use cloner_new_ids = 0');
+        return;
+    }
     
     if (getFormSource($f1) == false) {
-        nuJavascriptCallback("nuMessage(['The form $f1 (cloner_f1) does not exist!']);".clearHashCookies());
+        showError('The form $f1 (cloner_f1) does not exist!');
         return;
     }
     
     if (getFormDestination($f2) == false) {
-        nuJavascriptCallback("nuMessage(['The form $f2 (cloner_f2) does not exist!'])".clearHashCookies());
+        showError('The form $f2 (cloner_f2) does not exist!');
         return;
     }
 
@@ -605,7 +615,7 @@ function startCloner() {
     $objectIds = [];
     $selectIds = [];
     
-    cloneFormObjects($f1, $f2, $objectIds, $tab_ids);
+    cloneFormObjects($f1, $f2, $objectIds, $tabIds);
     cloneObjectsPHP($f1, $objectIds);
     cloneObjectsSelect($f1, $objectIds, $selectIds);
     cloneObjectsSelectClause($f1, $selectIds);
