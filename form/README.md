@@ -14,6 +14,8 @@ The PHP Procedure ["cloner"] (https://github.com/smalos/nuBuilder4-cloner) is re
 
 ## Importing the "cloner" form
 
+(Import into an existing nuBuilder Database)
+
 1. Download  [cloner_form.sql](cloner_form.sql)
 2. Log into phpMyAdmin (In nuBuilder, go to the tab "Builders" and click on the "Database" button)
 3. In phpMyAdmin, Click "Import" in the top menu
