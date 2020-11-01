@@ -34,19 +34,19 @@ Click "Save"
 nuRunPHPHidden() is used to set Hash Cookies and pass arguments from JavaScript to the cloner script.
 
 - **cloner_f1**
-  - (Optional) The form ID of the source form to clone. The current form is used if empty/not set.
+  - (Optional) The form ID (primary key) of the source form to clone. The current form is used if empty/not set.
 - **cloner_f2**
-  - (Optional) The form ID of the destination form. A new form is created if empty/not set.
+  - (Optional) The form ID (primary key) of the destination form. A new form is created if empty/not set.
 - **cloner_tabs**
-  - (Optional) Specify the Tabs to include. By default, all tabs are included. Usage: See example 5.
+  - (Optional) Specify the tabs to include. By default, all tabs are included.
 - **cloner_without_objects**
-  - (Optional) If set to "1", clone only the form without its objects.
+  - (Optional) If set to "1", only the form is cloned, without its objects.
 - **cloner_dump**
-  - (Optional) If set to "1", dump the SQL INSERT statements to the browser window instead of executing them
+  - (Optional) If set to "1", dump the SQL INSERT statements to the browser window instead of executing them.
 - **cloner_open_new_form**
-  - (Optional) If set to "1", the new/destination form is not shown after the cloning
-- **cloner_new_ids**
-  - (Optional) If set to "0", no new IDs (primary keys) are generated. This option is only to be used if cloner_dump is set to 1.
+  - (Optional) If set to "1", the new (destination) form is not shown after the cloning. Not available in dump mode.
+- **cloner_new_pks**
+  - (Optional) If set to "0", no new primary keys are generated. This option is only available in dump mode.
 
 
 ## Usage Examples:
@@ -61,7 +61,7 @@ To test/run the examples, use the Developer Console (F12).
 nuRunPHPHidden('cloner', 0);
 ```
 
-Result: The current form has been cloned. (A _clone postifx has been added to the form code)
+Result: The current form has been cloned. (A "_clone" postifx has been added to the form code)
 
 ### 2. Clone any Form
 
@@ -126,11 +126,11 @@ nuSetProperty('cloner_f2','');
 nuRunPHP('cloner', '',1);
 ```
 
-### 8: Do not generate new IDs.
+### 8: Do not generate new primary keys.
 
 ```php
 nuSetProperty('cloner_dump','1');
-nuSetProperty('cloner_new_ids', "0");
+nuSetProperty('cloner_new_pks', "0");
 nuSetProperty('cloner_f1','');
 nuSetProperty('cloner_f2','');
 nuRunPHP('cloner', '',1);
