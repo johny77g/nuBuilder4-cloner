@@ -31,6 +31,14 @@ Fill in the form with:
 
 Click "Save"
 
+## Usage
+
+There are two different ways to use the "cloner". 
+
+1. Either run it directly from the Developer Console (see Usage Examples below) 
+2. or use the [form (GUI)](/form)
+
+
 ## Cloner settings:
 
 nuRunPHPHidden() is used to set Hash Cookies and pass arguments from JavaScript to the cloner script.
@@ -44,15 +52,18 @@ nuRunPHPHidden() is used to set Hash Cookies and pass arguments from JavaScript 
 - **cloner_objects**
   - (Optional, default: 1) If set to "0", only the form is cloned, without its objects.
 - **cloner_subforms**
-  - (Optional, default: 0) If set to "1", also clone the associated subforms.
+  - (Optional, default: 0) If set to "1", also clone the embedded subforms.
 - **cloner_iframe_forms**
-  - (Optional, default: 0) If set to "1", also clone the associated subforms.
-- **cloner_dump**
-  - (Optional, default: 0) If set to "1", dump the SQL INSERT statements to the browser window instead of executing them.
+  - (Optional, default: 0) If set to "1", also clone the embedded iframe (run) forms.
 - **cloner_open_new_form**
   - (Optional, default: 1) If set to "1", the new (destination) form is not shown after the cloning. Not available in dump mode.
 - **cloner_new_pks**
   - (Optional: default: 0) If set to "0", no new primary keys are generated. This option is only available in dump mode.
+
+- **cloner_dump**
+  - (Optional, default: 0) If set to "1", dump the SQL INSERT statements to the browser window instead of executing them.
+
+Use nuRunPHP() if the dump modus, nuSetProperty('cloner_dump','1'), is used.
 
 
 ## Usage Examples:
@@ -61,7 +72,7 @@ To test/run the examples, use the Developer Console (F12).
 
 ### 1. Clone the current Form:
 
--> Open any form first. Then run this JavaScript:
+Open any form first. Then run this JavaScript:
 
 ```php
 nuRunPHPHidden('cloner', 0);
@@ -132,7 +143,7 @@ nuSetProperty('cloner_dest','');
 nuRunPHP('cloner', '',1);
 ```
 
-### 8: Do not generate new primary keys.
+### 9: Do not generate new primary keys.
 
 ```php
 nuSetProperty('cloner_dump','1');
@@ -142,7 +153,7 @@ nuSetProperty('cloner_dest','');
 nuRunPHP('cloner', '',1);
 ```
 
-### 9: Include (all) subforms
+### 10: Include (all) subforms
 
 ```php
 
@@ -151,7 +162,7 @@ nuSetProperty('cloner_open_new_form', "0");
 nuRunPHPHidden('cloner', 0);
 ```
 
-### 10: Include (all) embedded iframe forms
+### 11: Include (all) embedded iframe forms
 
 ```php
 
