@@ -1,4 +1,4 @@
-// ## nuBuilder Cloner 1.10
+// ## nuBuilder Cloner 1.11
 // https://github.com/smalos/nuBuilder4-cloner
 
 function hashCookieSet($h) {
@@ -24,7 +24,7 @@ function addToArray(array & $arr, $key, $value) {
 }
 
 function getPk($pk) {
-    return "#cloner_new_pks#" == '1' ? nuID() : $pk;
+    return "#cloner_new_pks#" != '0' ? nuID() : $pk;
 }
 
 function getTabList() {
