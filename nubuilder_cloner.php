@@ -119,7 +119,7 @@ function dumpFormInfo($f, $dump) {
     $fi = getFormInfo($f);
     echo "<b>";
     echo "-- nuBuilder cloner SQL Dump " . "<br>";
-    echo "-- Version 1.10 " . "<br>";
+    echo "-- Version 1.11 " . "<br>";
     echo "-- Generation Time: " . date("F d, Y h:i:s A") . "<br><br>";
     echo "-- Form Description: " . $fi["description"] . "<br>";
     echo "-- Form Code: " . $fi["code"] . "<br>";
