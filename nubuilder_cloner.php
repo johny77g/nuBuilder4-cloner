@@ -1,4 +1,4 @@
-// ## nuBuilder Cloner 1.20
+// ## nuBuilder Cloner 1.21
 // https://github.com/smalos/nuBuilder4-cloner
 
 function hashCookieSet($h) {
@@ -90,20 +90,6 @@ function formExists($f) {
 
 }
 
-function getFormInfo($f) {
-
-    $t = nuRunQuery(formSQL() , [$f]);
-    $row = db_fetch_object($t);
-
-    return array(
-        "code" => $row->sfo_code,
-        "description" => $row->sfo_description,
-        "type" => $row->sfo_type,
-        "table" => $row->sfo_table
-    );
-
-}
-
 function echoPlainText($val) {
 
     echo '<pre>';
@@ -119,7 +105,7 @@ function dumpFormInfo($f, $dump) {
     $fi = getFormInfo($f);
     echo "<b>";
     echo "-- nuBuilder cloner SQL Dump " . "<br>";
-    echo "-- Version 1.20 " . "<br>";
+    echo "-- Version 1.21 " . "<br>";
     echo "-- Generation Time: " . date("F d, Y h:i:s A") . "<br><br>";
     echo "-- Form Description: " . $fi["description"] . "<br>";
     echo "-- Form Code: " . $fi["code"] . "<br>";
@@ -187,6 +173,20 @@ function getFormType($f) {
     $row = db_fetch_array($t);
 
     return $row['sfo_type'];
+
+}
+
+function getFormInfo($f) {
+
+    $t = nuRunQuery(formSQL() , [$f]);
+    $row = db_fetch_object($t);
+
+    return array(
+        "code" => $row->sfo_code,
+        "description" => $row->sfo_description,
+        "type" => $row->sfo_type,
+        "table" => $row->sfo_table
+    );
 
 }
 
@@ -510,8 +510,17 @@ function getOpenForm($f2) {
 
     $ft = getFormType($f2);
     $r = $ft == 'browseedit' ? "" : "-1";
-    return "nuForm('$f2', '$r', '', '', '2');";
 
+    $code = getFormInfo($f2) ["code"];
+
+    $msg = "
+	   var buttons = ' <button onclick=\"$(\'#nuMessageDiv\').remove();nuForm(\'$f2\', \'$r\', \'\', \'\', \'2\');\" class=\"nuActionButton\">Open Form</button>';
+	   nuMessage(['<h2>Cloning complete.</h2><h3>Code: $code</h3>' + buttons]);
+	   console.log('Cloning complete. Form Code: $code');
+   ";
+
+    return $msg;
+    
 }
 
 function clearHashCookies() {
@@ -527,7 +536,6 @@ function clearHashCookies() {
             nuSetProperty('cloner_iframe_forms', '0');
             nuSetProperty('cloner_dump','0');
             nuSetProperty('cloner_new_pks','1');
-            nuSetProperty('cloner_open_new_form','1');
         }
         
         clearHashCookies();
@@ -635,7 +643,7 @@ function showError($msg) {
 
 function showForm($f2, $dump) {
 
-    if ("#cloner_open_new_form#" == '0' || $dump == '1') return;
+    if ($dump == '1') return;
     nuJavascriptCallback(getOpenForm($f2) . clearHashCookies());
 
 }
@@ -772,7 +780,6 @@ function processObjects($f1, $f2, &$tabPks) {
 
 }
 
-
 function startCloner() {
 
     $dump = "#cloner_dump#";
@@ -805,4 +812,4 @@ function startCloner() {
 
 if (refreshSelectObject() == true) return;
 
-startCloner();
+startCloner();	    
