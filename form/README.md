@@ -25,4 +25,4 @@ The PHP Procedure ["cloner"] (https://github.com/smalos/nuBuilder4-cloner) is re
 7. Log out from nuBuilder (if logged in) and  log in again for the changes to take effect.
 
 ## Note
-A button "Cloner" will be added to the User Home / Fast Forms tab. If you cannot spot it, it might be hidden behind another object. User "Arrange Objects" (CTRL+SHIFT+A) to move it to another position.
+A button "Cloner" will be added to the User Home / Fast Forms tab. If you cannot spot it, it might be hidden behind another object. Use "Arrange Objects" (CTRL+SHIFT+A) to move it to another position.
