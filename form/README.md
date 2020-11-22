@@ -23,3 +23,6 @@ The PHP Procedure ["cloner"] (https://github.com/smalos/nuBuilder4-cloner) is re
 5. Click "Go" at the bottom right to import the database file.
 6. When the database has been imported successfully, you should see a message at the top of the page similar to: "Import has been successfully finished".
 7. Log out from nuBuilder (if logged in) and  log in again for the changes to take effect.
+
+## Note
+A button "Cloner" will be added to the User Home / Fast Forms tab. If you cannot spot it, it might be hidden behind another object. User "Arrange Objects" (CTRL+SHIFT+A) to move it to another position.
