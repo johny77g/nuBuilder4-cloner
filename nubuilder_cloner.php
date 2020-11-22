@@ -1,4 +1,4 @@
-// ## nuBuilder Cloner 1.11
+// ## nuBuilder Cloner 1.20
 // https://github.com/smalos/nuBuilder4-cloner
 
 function hashCookieSet($h) {
@@ -119,7 +119,7 @@ function dumpFormInfo($f, $dump) {
     $fi = getFormInfo($f);
     echo "<b>";
     echo "-- nuBuilder cloner SQL Dump " . "<br>";
-    echo "-- Version 1.11 " . "<br>";
+    echo "-- Version 1.20 " . "<br>";
     echo "-- Generation Time: " . date("F d, Y h:i:s A") . "<br><br>";
     echo "-- Form Description: " . $fi["description"] . "<br>";
     echo "-- Form Code: " . $fi["code"] . "<br>";
@@ -190,6 +190,15 @@ function getFormType($f) {
 
 }
 
+function getNewFormCode($code) {
+
+    $s = "SELECT COUNT(zzzzsys_form_id) + 1 FROM zzzzsys_form WHERE sfo_code LIKE ?";
+    $t = nuRunQuery($s, [$code . '_clone%']);
+    $r = db_fetch_row($t);
+    return $code . '_clone_' . $r[0];
+
+}
+
 function cloneForm($f1) {
 
     $t = nuRunQuery(formSQL() , [$f1]);
@@ -197,7 +206,7 @@ function cloneForm($f1) {
 
     $newPk = getPk($row['zzzzsys_form_id']);
     $row['zzzzsys_form_id'] = $newPk;
-    $row['sfo_code'] .= "_clone";
+    $row['sfo_code'] = getNewFormCode($row['sfo_code']);
 
     insertRecord('zzzzsys_form', $row, $first, $row['sfo_code']);
 
