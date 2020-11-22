@@ -55,11 +55,8 @@ nuRunPHPHidden() is used to set Hash Cookies and pass arguments from JavaScript 
   - (Optional, default: 0) If set to "1", also clone the embedded subforms.
 - **cloner_iframe_forms**
   - (Optional, default: 0) If set to "1", also clone the embedded iframe (run) forms.
-- **cloner_open_new_form**
-  - (Optional, default: 1) If set to "1", the new (destination) form is not shown after the cloning. Not available in dump mode.
 - **cloner_new_pks**
   - (Optional: default: 0) If set to "0", no new primary keys are generated. This option is only available in dump mode.
-
 - **cloner_dump**
   - (Optional, default: 0) If set to "1", dump the SQL INSERT statements to the browser window instead of executing them.
 
@@ -125,14 +122,7 @@ nuSetProperty('cloner_dest','');
 nuRunPHPHidden('cloner', 0);
 ```
 
-### 7: Do not show the new form after cloning
-
-```php
-nuSetProperty('cloner_open_new_form', "0");
-nuRunPHPHidden('cloner', 0);
-```
-
-### 8: Dump the SQL statements instead of executing them
+### 7: Dump the SQL statements instead of executing them
 
 ```php
 nuSetProperty('cloner_dump','1');
@@ -143,7 +133,7 @@ nuSetProperty('cloner_dest','');
 nuRunPHP('cloner', '',1);
 ```
 
-### 9: Do not generate new primary keys.
+### 8: Do not generate new primary keys.
 
 ```php
 nuSetProperty('cloner_dump','1');
@@ -153,20 +143,18 @@ nuSetProperty('cloner_dest','');
 nuRunPHP('cloner', '',1);
 ```
 
-### 10: Include (all) subforms
+### 9: Include (all) subforms
 
 ```php
 
 nuSetProperty('cloner_subforms','1');
-nuSetProperty('cloner_open_new_form', "0");
 nuRunPHPHidden('cloner', 0);
 ```
 
-### 11: Include (all) embedded iframe forms
+### 10: Include (all) embedded iframe forms
 
 ```php
 
 nuSetProperty('cloner_iframe_forms','1');
-nuSetProperty('cloner_open_new_form', "0");
 nuRunPHPHidden('cloner', 0);
 ```
